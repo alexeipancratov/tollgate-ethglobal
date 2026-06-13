@@ -1,6 +1,8 @@
 <!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+Active feature: **Walking-Skeleton Scaffold** (`specs/001-scaffold-walking-skeleton/`).
+For technologies, project structure, and the implementation approach, read the
+current plan: `specs/001-scaffold-walking-skeleton/plan.md` (with `research.md`,
+`data-model.md`, `contracts/`, and `quickstart.md` alongside it).
 <!-- SPECKIT END -->
 
 # Project Context: Tollgate
