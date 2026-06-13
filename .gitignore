@@ -1,3 +1,33 @@
+### Node / project
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Local data (SQLite)
+be/data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Logs
+*.log
+
+# Env
+.env
+.env.*
+
+# Test / coverage
+coverage/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
 ### macOS
 # Finder metadata
 .DS_Store
@@ -6,7 +36,7 @@
 ._*
 
 # Custom folder icons
-Icon
+Icon
 
 # Volume root files
 .DocumentRevisions-V100
