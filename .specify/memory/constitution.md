@@ -1,6 +1,29 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.1.0 → 1.2.0 (MINOR)
+Rationale: Reframed the Development Workflow to fit the Spec Kit model. The
+constitution no longer prescribes a numbered build sequence (the operator owns
+that via specs; the living sequence moved to ROADMAP.md). Instead it now states
+a "Sequencing discipline" (the durable rules any spec/plan must respect,
+enforced at the plan's Constitution Check) and a "Spec-time interaction
+contract" (agent validates each spec against constitution + roadmap and accepts
+or proposes adjustments; operator may ask the agent to propose the next spec).
+- New companion artifact: ROADMAP.md (operator-owned, agent-readable, status-
+  tracked) holds the concrete walking-skeleton sequence.
+
+----- Prior entry (1.1.0, MINOR) -----
+Version change: 1.0.1 → 1.1.0 (MINOR)
+Rationale: Reworked the Development Workflow build order to a walking-skeleton
+approach — scaffold a thin end-to-end server + FE shell first, then deepen each
+component. Material change to workflow guidance; no principles added/removed.
+- Step 1 is now "Scaffold (walking skeleton)"; shared/ types emerge here
+  incrementally instead of a big upfront pass.
+- Policy engine moved to step 2 with an explicit guardrail that it comes right
+  after the scaffold and is never deferred (preserves Principle III).
+- Ledger simulator step names the Speculos transport (consistent with 1.0.1).
+
+----- Prior entry (1.0.1, PATCH) -----
 Version change: 1.0.0 → 1.0.1 (PATCH)
 Rationale: Clarifications and one factual correction to the Ledger integration
 guidance after adding the Ledger DMK skills under .agents/skills/. No principles
@@ -194,15 +217,35 @@ directly serve the prize criteria.
 
 ## Development Workflow
 
-Build order — each step MUST be demo-able before the next begins:
+This project uses Spec Kit. The operator authors specs (`/speckit-specify`) and
+owns the scope and ordering of each increment; plans and tasks flow from there.
+The constitution does NOT own the concrete build sequence — that lives as a
+living, operator-owned artifact in `ROADMAP.md`. The constitution owns the
+sequencing discipline that any spec or plan must respect, and the interaction
+contract for how specs get proposed and validated.
 
-1. `shared/` types.
-2. `policy/` engine + unit tests (pure TS; demo-able alone).
-3. `agent/` loop + backend clearance endpoint, policy wired in (autonomous
-   auto-clear + escalation visible via logs).
-4. FE console: live feed + approvals inbox over WebSocket (looks like a product).
-5. Ledger SIMULATOR path wired to the approve button (full flow, mocked device).
-6. Flip to the real Flex LAST (the only thing that can sink the demo).
+**Sequencing discipline** (every spec and plan MUST respect it; enforced at the
+plan's Constitution Check):
+
+- Walking skeleton first: stand up a thin end-to-end server + FE shell before
+  deepening any component.
+- The policy engine is deepened early and is never deferred toward the end
+  (Principle III).
+- Each increment MUST be demo-able end-to-end before the next begins
+  (Principle VI).
+- The riskiest leg — the real Ledger device — is integrated LAST, behind a
+  simulator path (Speculos) that is itself a complete, winnable demo
+  (Principles I, IV, VI).
+
+**Spec-time interaction contract**:
+
+- When the operator authors a spec, the agent validates it against (1) this
+  constitution (hard gate) and (2) the sequencing discipline + current
+  `ROADMAP.md`, then either accepts it as-is or proposes adjustments with reasons.
+- The operator may ask the agent to propose the next spec; the agent recommends
+  based on `ROADMAP.md` and what is already built.
+- `ROADMAP.md` is updated as increments land; the constitution is not touched for
+  routine sequencing changes.
 
 Commit continuously with meaningful messages (sponsors check history; no
 single-commit submissions).
@@ -244,4 +287,4 @@ The two NON-NEGOTIABLE principles (I and II) are hard gates — a change that
 violates either MUST NOT be merged. Complexity that appears to require violating
 a principle MUST be justified in writing, or the feature MUST be cut.
 
-**Version**: 1.0.1 | **Ratified**: 2026-06-13 | **Last Amended**: 2026-06-13
+**Version**: 1.2.0 | **Ratified**: 2026-06-13 | **Last Amended**: 2026-06-13

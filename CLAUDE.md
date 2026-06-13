@@ -117,11 +117,18 @@ Express/Fastify + SQLite (Drizzle/Prisma) + WebSocket. Agent: Node loop. Ledger:
 plain project with folders (`web/`, `be/` with `server/`+`policy/`+`agent/`,
 top-level `shared/`); NO pnpm workspace.
 
-## Build order (always demo-able)
+## Build order & roadmap
 
-`shared types` → `policy engine + tests` → `agent loop + backend clearance` →
-`FE console over WebSocket` → `Ledger simulator path` → flip to **real Flex LAST**.
-If the real device stalls, the simulator path is a complete, winnable demo.
+This project uses Spec Kit: the operator authors specs and owns per-increment
+scope/ordering. The **living build sequence is in `ROADMAP.md`** (status-tracked,
+operator-owned) — read it when deciding or proposing what to build next. The
+durable *sequencing discipline* (walking skeleton first, policy engine early and
+never deferred, each increment demo-able, real device last) and the spec-time
+interaction contract live in the constitution's Development Workflow.
+
+When the operator writes a spec, validate it against the constitution + roadmap
+and either accept it or propose adjustments with reasons. When asked "what's
+next?", recommend from `ROADMAP.md` based on what's already built.
 
 ## Stretch goals (ONLY after the Ledger core is rock solid, ≥ 8h left)
 
