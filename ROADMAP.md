@@ -27,14 +27,20 @@ Status legend: `[ ]` not started · `[~]` in progress · `[x]` done
    STUB endpoint/console action — **Ledger deferred**. This re-slices the old
    "Policy engine" (one rule now) and the backend half of the old "FE console
    approvals inbox" into one demo-able vertical cut.
-3. `[ ]` **Ledger simulator path** (NEXT) — Speculos transport wired into the
-   existing #2 stub Approve button (browser-side DMK, full signing flow on the
-   mocked device). The human signs an EIP-712 approval payload; backend verifies
-   and releases. A complete, winnable demo on its own.
-4. `[ ]` **Real Flex** — flip the transport env var (Principle IV) to the
-   sponsor-provided device: a REAL secure-element EIP-712 signature in the demo
-   (Principle I). MUST come right after #3 (simulator fallback first), never
-   before it.
+3. `[~]` **Ledger simulator path** (`specs/003-ledger-simulator-signing/`, IN PROGRESS)
+   — a swappable browser-side `ApprovalSigner` seam (Principle IV) wired into the
+   existing #2 Approve button. The human signs an EIP-712 approval payload; the
+   backend rebuilds the typed data and verifies the signer == the authorized
+   approver before releasing. **Simulator = a software signer (viem dev key),
+   NOT Speculos** (Speculos is Node/TCP, unfit for the browser flow); no DMK
+   packages this slice. **US1 done** (signed approve → verify → release works,
+   tested). **Deferred: US2** (verification test suite — tamper/replay) **and US3**
+   (device-cancel audit + reject re-confirm).
+4. `[ ]` **Real Flex** — set `VITE_SIGNER=ledger` and implement `LedgerSigner` with
+   DMK + WebHID + the Ethereum signer (Principle IV) on the sponsor-provided device:
+   a REAL secure-element EIP-712 signature in the demo (Principle I). MUST come
+   after #3's simulator fallback, never before it. (Also finish #3's US2/US3 around
+   here.)
 5. `[ ]` **FE console — approvals inbox + transparency** — real approvals inbox UI
    (replaces #2's stub resolution) plus budget/velocity and audit-log panels.
    Enhancement; does not gate the core Ledger demo.
