@@ -1,10 +1,17 @@
 import { useEffect, useState } from "react";
 import { connectFeed } from "./lib/ws";
 import { Feed, type FeedRow } from "./feed/Feed";
+import { getSigner, SigningCancelled } from "./ledger";
+import { buildApprovalTypedData } from "../../shared/approval-typed-data";
+
+const CHAIN_ID = Number(import.meta.env.VITE_CHAIN_ID ?? 1);
 
 export default function App() {
   // Rows keyed by action id; resolutions update the matching held row in place.
   const [rows, setRows] = useState<Record<string, FeedRow>>({});
+  const [connected, setConnected] = useState(false);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(
     () =>
@@ -30,11 +37,50 @@ export default function App() {
     [],
   );
 
-  async function onResolve(approvalId: string, outcome: "approve" | "reject") {
+  async function onConnect() {
+    try {
+      await getSigner().connect();
+      setConnected(true);
+      setNotice(null);
+    } catch (e) {
+      setNotice((e as Error).message);
+    }
+  }
+
+  async function onApprove(row: FeedRow) {
+    if (!row.approvalId) return;
+    const signer = getSigner();
+    if (!signer.isConnected()) {
+      setNotice("Connect the Ledger first.");
+      return;
+    }
+    setBusyId(row.action.id);
+    setNotice(null);
+    try {
+      const typedData = buildApprovalTypedData(row.action, row.approvalId, CHAIN_ID);
+      const { signature } = await signer.signApproval(typedData);
+      const resp = await fetch(`/approvals/${row.approvalId}/approve-signed`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ signature }),
+      });
+      if (!resp.ok) setNotice(`Backend refused the signature (HTTP ${resp.status}) — action still held.`);
+    } catch (e) {
+      if (e instanceof SigningCancelled) {
+        setNotice("Signing cancelled — action still held, you can approve again.");
+      } else {
+        setNotice((e as Error).message);
+      }
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function onReject(approvalId: string) {
     await fetch(`/approvals/${approvalId}/resolve`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ outcome }),
+      body: JSON.stringify({ outcome: "reject" }),
     });
   }
 
@@ -53,11 +99,30 @@ export default function App() {
         fontFamily: "system-ui, sans-serif",
       }}
     >
-      <h1 style={{ fontSize: 20, margin: "0 0 4px" }}>Tollgate — live feed</h1>
-      <p style={{ color: "#8b949e", margin: "0 0 16px", fontSize: 13 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h1 style={{ fontSize: 20, margin: "0 0 4px" }}>Tollgate — live feed</h1>
+        <button
+          onClick={onConnect}
+          style={{
+            background: connected ? "#238636" : "#1f6feb",
+            color: "#fff",
+            border: "none",
+            borderRadius: 6,
+            padding: "6px 12px",
+            cursor: "pointer",
+            fontSize: 13,
+          }}
+        >
+          {connected ? "Ledger connected" : "Connect Ledger"}
+        </button>
+      </div>
+      <p style={{ color: "#8b949e", margin: "0 0 8px", fontSize: 13 }}>
         {list.length} actions · {held} awaiting approval (per-action-cap policy)
       </p>
-      <Feed rows={list} onResolve={onResolve} />
+      {notice && (
+        <p style={{ color: "#d29922", margin: "0 0 12px", fontSize: 13 }}>{notice}</p>
+      )}
+      <Feed rows={list} busyId={busyId} onApprove={onApprove} onReject={onReject} />
     </main>
   );
 }

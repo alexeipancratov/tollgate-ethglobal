@@ -1,9 +1,9 @@
 <!-- SPECKIT START -->
-Active feature: **Escalation, Hold & Human Approval** (`specs/002-escalation-hold-approval/`).
+Active feature: **Ledger Simulator Signing Path** (`specs/003-ledger-simulator-signing/`).
 For technologies, project structure, and the implementation approach, read the
-current plan: `specs/002-escalation-hold-approval/plan.md` (with `research.md`,
+current plan: `specs/003-ledger-simulator-signing/plan.md` (with `research.md`,
 `data-model.md`, `contracts/`, and `quickstart.md` alongside it). Built on the
-completed `001-scaffold-walking-skeleton`.
+completed `001-scaffold-walking-skeleton` and `002-escalation-hold-approval`.
 <!-- SPECKIT END -->
 
 # Project Context: Tollgate

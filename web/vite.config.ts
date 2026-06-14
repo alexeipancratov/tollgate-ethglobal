@@ -5,6 +5,8 @@ import react from "@vitejs/plugin-react";
 // /feed WebSocket to the backend gate during development.
 export default defineConfig({
   plugins: [react()],
+  // Read env from the repo root (one .env for backend, agent, and web)
+  envDir: "..",
   server: {
     fs: { allow: [".."] },
     proxy: {

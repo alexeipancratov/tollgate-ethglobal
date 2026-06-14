@@ -65,6 +65,18 @@ export const approvalsListResponseSchema = z.object({
   approvals: z.array(pendingApprovalSchema),
 });
 
+// signed approval (slice 003): client sends only the signature; backend rebuilds
+// and verifies the typed data.
+export const approveSignedRequestSchema = z.object({
+  signature: z.string().regex(/^0x[0-9a-fA-F]+$/),
+});
+export const signingCancelledRequestSchema = z.object({
+  reason: z.enum(["declined", "disconnected"]).optional(),
+});
+
+export type ApproveSignedRequest = z.infer<typeof approveSignedRequestSchema>;
+export type SigningCancelledRequest = z.infer<typeof signingCancelledRequestSchema>;
+
 // --- backend -> console ---
 export const snapshotMessageSchema = z.object({
   type: z.literal("snapshot"),

@@ -3,6 +3,7 @@
 // policy. Trust boundary (Principle II / FR-004): it performs an action only after
 // a `proceed`, or — for an escalated action — only after observing `approved`. On a
 // `escalate` it FREEZES (polls the approval) until a human resolves it.
+import "dotenv/config"; // load repo-root .env before reading process.env
 import { randomUUID } from "node:crypto";
 import type { Action } from "../../shared/types";
 import { clearanceResponseSchema, approvalResponseSchema } from "../../shared/messages";

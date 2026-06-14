@@ -7,7 +7,7 @@ import { randomUUID } from "node:crypto";
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { eq, desc, asc, ne } from "drizzle-orm";
-import { actions, decisions, approvals } from "./schema";
+import { actions, decisions, approvals, approvalEvents } from "./schema";
 import type {
   Action,
   ClearanceDecision,
@@ -15,6 +15,11 @@ import type {
   PendingApproval,
   ResolutionOutcome,
 } from "../../../shared/types";
+
+export type ApprovalEventKind =
+  | "signed_approved"
+  | "verification_failed"
+  | "signing_cancelled";
 
 let db: ReturnType<typeof drizzle> | null = null;
 
@@ -45,9 +50,27 @@ export function initStore(path: string): void {
       status TEXT NOT NULL,
       created_at INTEGER NOT NULL,
       resolved_at INTEGER,
-      seq INTEGER NOT NULL
+      seq INTEGER NOT NULL,
+      signature TEXT,
+      signer TEXT
+    );
+    CREATE TABLE IF NOT EXISTS approval_events (
+      seq INTEGER PRIMARY KEY AUTOINCREMENT,
+      approval_id TEXT NOT NULL,
+      kind TEXT NOT NULL,
+      signature_hash TEXT,
+      signer TEXT,
+      at INTEGER NOT NULL
     );
   `);
+  // Defensive migration for databases created before slice 003.
+  for (const col of ["signature TEXT", "signer TEXT"]) {
+    try {
+      sqlite.exec(`ALTER TABLE approvals ADD COLUMN ${col}`);
+    } catch {
+      // column already exists — ignore
+    }
+  }
   db = drizzle(sqlite);
 }
 
@@ -143,6 +166,41 @@ export function resolveApproval(id: string, status: ResolutionOutcome): ResolveR
 
   const seqRow = d.select({ seq: approvals.seq }).from(approvals).where(eq(approvals.id, id)).all();
   return { ok: true, approval: { ...existing, status, resolvedAt }, seq: seqRow[0]!.seq };
+}
+
+/** Release a held action via a verified signed approval (slice 003). */
+export function recordSignedApproval(id: string, signature: string, signer: string): ResolveResult {
+  const d = requireDb();
+  const existing = getApproval(id);
+  if (!existing) return { ok: false, reason: "not_found" };
+  if (existing.status !== "pending") return { ok: false, reason: "already_resolved" };
+
+  const resolvedAt = Date.now();
+  d.update(approvals)
+    .set({ status: "approved", resolvedAt, signature, signer })
+    .where(eq(approvals.id, id))
+    .run();
+
+  const seqRow = d.select({ seq: approvals.seq }).from(approvals).where(eq(approvals.id, id)).all();
+  return { ok: true, approval: { ...existing, status: "approved", resolvedAt }, seq: seqRow[0]!.seq };
+}
+
+/** Append an audit entry for a signing attempt (FR-008 / SC-007). */
+export function recordApprovalEvent(
+  approvalId: string,
+  kind: ApprovalEventKind,
+  extra?: { signatureHash?: string; signer?: string },
+): void {
+  const d = requireDb();
+  d.insert(approvalEvents)
+    .values({
+      approvalId,
+      kind,
+      signatureHash: extra?.signatureHash ?? null,
+      signer: extra?.signer ?? null,
+      at: Date.now(),
+    })
+    .run();
 }
 
 /** Merged ordered feed history for the snapshot: decisions, then resolutions. */

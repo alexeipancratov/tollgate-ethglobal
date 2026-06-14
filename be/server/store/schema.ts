@@ -20,7 +20,7 @@ export const decisions = sqliteTable("decisions", {
   decidedAt: integer("decided_at").notNull(),
 });
 
-// A held action awaiting a human decision (this slice).
+// A held action awaiting a human decision.
 export const approvals = sqliteTable("approvals", {
   id: text("id").primaryKey(),
   actionId: text("action_id")
@@ -32,4 +32,17 @@ export const approvals = sqliteTable("approvals", {
   // The originating decision's seq — carried on the resolution feed event so the
   // console can update the matching held row.
   seq: integer("seq").notNull(),
+  // Set when released via a verified signed approval (slice 003).
+  signature: text("signature"),
+  signer: text("signer"),
+});
+
+// Audit trail of approval signing attempts (slice 003).
+export const approvalEvents = sqliteTable("approval_events", {
+  seq: integer("seq").primaryKey({ autoIncrement: true }),
+  approvalId: text("approval_id").notNull(),
+  kind: text("kind").notNull(), // "signed_approved" | "verification_failed" | "signing_cancelled"
+  signatureHash: text("signature_hash"),
+  signer: text("signer"),
+  at: integer("at").notNull(),
 });
