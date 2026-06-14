@@ -43,6 +43,6 @@ integration detail: the Ledger DMK skills in `.agents/skills/`.
 
 ## Swap contract
 
-`VITE_SIGNER=ledger` selects `LedgerSigner`; `simulator` (default) selects
-`SimulatedSigner`. The factory (`web/src/ledger/index.ts`) and every caller are
+`VITE_SIGNER=ledger` selects `LedgerSigner` and is the default; `simulator` selects
+`SimulatedSigner` as an explicit fallback. The factory (`web/src/ledger/index.ts`) and every caller are
 unchanged — the swap is one env var (FR-002 / SC-003).

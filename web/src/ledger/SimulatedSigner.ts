@@ -1,4 +1,4 @@
-// Software simulator of the approval device (default this slice). Signs the
+// Software simulator of the approval device (explicit fallback). Signs the
 // approval typed-data with a TEST dev key (viem), behind a confirm dialog that
 // mimics the on-device confirmation moment. NOT the DMK/Speculos transport
 // (Speculos is Node/TCP) — this is the browser-side simulator implementation of

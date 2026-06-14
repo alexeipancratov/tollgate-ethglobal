@@ -34,7 +34,8 @@ device-side data the `LedgerSigner` works with (in-memory, browser).
 
 ## Configuration (developer/operator constants)
 
-- `VITE_SIGNER=ledger` selects this implementation (default stays `simulator`).
+- `VITE_SIGNER=ledger` selects this implementation and is the default;
+  `VITE_SIGNER=simulator` remains an explicit fallback.
 - Derivation path: Ledger-standard Ethereum account (e.g. `44'/60'/0'/0/0`), a constant.
 - `TOLLGATE_APPROVER_ADDRESS` = the device's address (read once via the console).
 - `VITE_CHAIN_ID` / `TOLLGATE_CHAIN_ID` must match (unchanged from 003).
