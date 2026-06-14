@@ -42,9 +42,10 @@ export default function App() {
   async function onConnect() {
     try {
       setDeviceAddress(null);
-      await getSigner().connect();
+      setNotice("Connecting to Ledger and opening the Ethereum app…");
+      await getSigner().connect(setNotice);
       setConnected(true);
-      setNotice(null);
+      setNotice("Ledger address verified and ready.");
     } catch (e) {
       setNotice((e as Error).message);
     }
@@ -54,7 +55,8 @@ export default function App() {
     setAddressBusy(true);
     setNotice(null);
     try {
-      setDeviceAddress(await getSigner().getApproverAddress());
+      setDeviceAddress(await getSigner().getApproverAddress(setNotice));
+      setNotice(null);
     } catch (e) {
       setNotice((e as Error).message);
     } finally {
@@ -73,7 +75,7 @@ export default function App() {
     setNotice("Review and confirm the approval on your device…");
     try {
       const typedData = buildApprovalTypedData(row.action, row.approvalId, CHAIN_ID);
-      const { signature } = await signer.signApproval(typedData);
+      const { signature } = await signer.signApproval(typedData, setNotice);
       setNotice(null);
       const resp = await fetch(`/approvals/${row.approvalId}/approve-signed`, {
         method: "POST",

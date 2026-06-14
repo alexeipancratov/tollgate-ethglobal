@@ -73,7 +73,7 @@ address to configure the approver.
 **Independent Test (on Flex)**: start locked / on dashboard → guided to ready; show the
 device address; then US1 succeeds (SC-006, FR-004).
 
-- [ ] T013 [US2] Add device-readiness prompts in `web/src/App.tsx` (via `errors.ts` + Pending interactions): locked → "unlock / enter PIN", dashboard/wrong app → "open the Ethereum app"
+- [x] T013 [US2] Add device-readiness prompts in `web/src/App.tsx` (via `errors.ts` + Pending interactions): locked → "unlock / enter PIN", dashboard/wrong app → "open the Ethereum app"
 - [x] T014 [US2] Add a "Show device address" control in `web/src/App.tsx` that calls `getApproverAddress()` and displays it for `TOLLGATE_APPROVER_ADDRESS` configuration
 - [ ] T015 [US2] **(on Flex)** Validate US2 per quickstart: locked/dashboard guided; address shown and configured; US1 then succeeds (SC-006, FR-004)
 
