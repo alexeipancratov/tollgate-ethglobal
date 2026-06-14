@@ -1,6 +1,16 @@
 <!--
 SYNC IMPACT REPORT
 ==================
+Version change: 1.2.0 → 1.2.1 (PATCH)
+Rationale: Softened the "device last" wording in Principle VI and the Development
+Workflow sequencing discipline to state the actual safety property — the real
+device is integrated only AFTER a complete simulator (Speculos) fallback exists,
+not necessarily as the literal last step. Reflects the 2026-06-14 roadmap
+reprioritization (sponsor-provided Flex; Ledger is the primary prize) that pulls
+the device ahead of non-demo-gating enhancements. No principle added/removed/
+redefined; the fallback-before-device guarantee is unchanged.
+
+----- Prior entry (1.2.0, MINOR) -----
 Version change: 1.1.0 → 1.2.0 (MINOR)
 Rationale: Reframed the Development Workflow to fit the Spec Kit model. The
 constitution no longer prescribes a numbered build sequence (the operator owns
@@ -159,9 +169,12 @@ the typed-data signature carries the authorization.
 ### VI. Demo-able From Hour Six, Built in Vertical Slices
 
 The system MUST stay runnable end-to-end after initial integration. Features are
-added as thin vertical slices, never broad half-finished layers. The riskiest
-leg (the real device) is integrated LAST, so that if it stalls, a complete demo
-still runs on the simulator. A working narrow demo beats a broken ambitious one.
+added as thin vertical slices, never broad half-finished layers. The riskiest leg
+(the real device) is integrated ONLY AFTER a complete simulator fallback exists,
+so that if it stalls, a complete demo still runs on the simulator. Once that
+fallback is in place the real device MAY be brought in early (ahead of
+non-demo-gating enhancements); what is non-negotiable is that the simulator
+fallback precedes it. A working narrow demo beats a broken ambitious one.
 
 **Rationale**: Hackathon judging rewards a working artifact. Continuous
 demo-ability is the only reliable hedge against the unknown unknowns of new
@@ -233,8 +246,9 @@ plan's Constitution Check):
   (Principle III).
 - Each increment MUST be demo-able end-to-end before the next begins
   (Principle VI).
-- The riskiest leg — the real Ledger device — is integrated LAST, behind a
-  simulator path (Speculos) that is itself a complete, winnable demo
+- The real Ledger device is integrated ONLY AFTER a complete simulator path
+  (Speculos) exists as a winnable fallback — never before it. The device may then
+  be prioritized early; non-demo-gating enhancements MAY follow it
   (Principles I, IV, VI).
 
 **Spec-time interaction contract**:
@@ -287,4 +301,4 @@ The two NON-NEGOTIABLE principles (I and II) are hard gates — a change that
 violates either MUST NOT be merged. Complexity that appears to require violating
 a principle MUST be justified in writing, or the feature MUST be cut.
 
-**Version**: 1.2.0 | **Ratified**: 2026-06-13 | **Last Amended**: 2026-06-13
+**Version**: 1.2.1 | **Ratified**: 2026-06-13 | **Last Amended**: 2026-06-14
