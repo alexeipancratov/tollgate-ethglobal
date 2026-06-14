@@ -10,6 +10,8 @@ export default function App() {
   // Rows keyed by action id; resolutions update the matching held row in place.
   const [rows, setRows] = useState<Record<string, FeedRow>>({});
   const [connected, setConnected] = useState(false);
+  const [deviceAddress, setDeviceAddress] = useState<string | null>(null);
+  const [addressBusy, setAddressBusy] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -39,11 +41,24 @@ export default function App() {
 
   async function onConnect() {
     try {
+      setDeviceAddress(null);
       await getSigner().connect();
       setConnected(true);
       setNotice(null);
     } catch (e) {
       setNotice((e as Error).message);
+    }
+  }
+
+  async function onShowDeviceAddress() {
+    setAddressBusy(true);
+    setNotice(null);
+    try {
+      setDeviceAddress(await getSigner().getApproverAddress());
+    } catch (e) {
+      setNotice((e as Error).message);
+    } finally {
+      setAddressBusy(false);
     }
   }
 
@@ -55,10 +70,11 @@ export default function App() {
       return;
     }
     setBusyId(row.action.id);
-    setNotice(null);
+    setNotice("Review and confirm the approval on your device…");
     try {
       const typedData = buildApprovalTypedData(row.action, row.approvalId, CHAIN_ID);
       const { signature } = await signer.signApproval(typedData);
+      setNotice(null);
       const resp = await fetch(`/approvals/${row.approvalId}/approve-signed`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -101,24 +117,61 @@ export default function App() {
     >
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <h1 style={{ fontSize: 20, margin: "0 0 4px" }}>Tollgate — live feed</h1>
-        <button
-          onClick={onConnect}
-          style={{
-            background: connected ? "#238636" : "#1f6feb",
-            color: "#fff",
-            border: "none",
-            borderRadius: 6,
-            padding: "6px 12px",
-            cursor: "pointer",
-            fontSize: 13,
-          }}
-        >
-          {connected ? "Ledger connected" : "Connect Ledger"}
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {connected && (
+            <button
+              onClick={onShowDeviceAddress}
+              disabled={addressBusy}
+              style={{
+                background: "#21262d",
+                color: "#e6edf3",
+                border: "1px solid #30363d",
+                borderRadius: 6,
+                padding: "6px 12px",
+                cursor: addressBusy ? "wait" : "pointer",
+                fontSize: 13,
+                opacity: addressBusy ? 0.7 : 1,
+              }}
+            >
+              {addressBusy ? "Reading address…" : "Show device address"}
+            </button>
+          )}
+          <button
+            onClick={onConnect}
+            style={{
+              background: connected ? "#238636" : "#1f6feb",
+              color: "#fff",
+              border: "none",
+              borderRadius: 6,
+              padding: "6px 12px",
+              cursor: "pointer",
+              fontSize: 13,
+            }}
+          >
+            {connected ? "Ledger connected" : "Connect Ledger"}
+          </button>
+        </div>
       </div>
       <p style={{ color: "#8b949e", margin: "0 0 8px", fontSize: 13 }}>
         {list.length} actions · {held} awaiting approval (per-action-cap policy)
       </p>
+      {deviceAddress && (
+        <div
+          style={{
+            background: "#161b22",
+            border: "1px solid #30363d",
+            borderRadius: 6,
+            margin: "0 0 12px",
+            padding: "10px 12px",
+            fontSize: 13,
+          }}
+        >
+          <div style={{ color: "#8b949e", marginBottom: 4 }}>
+            Set this as <code>TOLLGATE_APPROVER_ADDRESS</code>, then restart the backend:
+          </div>
+          <code style={{ color: "#58a6ff", overflowWrap: "anywhere" }}>{deviceAddress}</code>
+        </div>
+      )}
       {notice && (
         <p style={{ color: "#d29922", margin: "0 0 12px", fontSize: 13 }}>{notice}</p>
       )}
