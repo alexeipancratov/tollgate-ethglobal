@@ -9,6 +9,7 @@ export default defineConfig({
     fs: { allow: [".."] },
     proxy: {
       "/feed": { target: "ws://127.0.0.1:8787", ws: true },
+      "/approvals": { target: "http://127.0.0.1:8787" },
     },
   },
 });

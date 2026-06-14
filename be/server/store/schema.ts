@@ -15,7 +15,21 @@ export const decisions = sqliteTable("decisions", {
   actionId: text("action_id")
     .notNull()
     .references(() => actions.id),
-  outcome: text("outcome").notNull(),
+  outcome: text("outcome").notNull(), // "proceed" | "escalate"
   policy: text("policy").notNull(),
   decidedAt: integer("decided_at").notNull(),
+});
+
+// A held action awaiting a human decision (this slice).
+export const approvals = sqliteTable("approvals", {
+  id: text("id").primaryKey(),
+  actionId: text("action_id")
+    .notNull()
+    .references(() => actions.id),
+  status: text("status").notNull(), // "pending" | "approved" | "rejected"
+  createdAt: integer("created_at").notNull(),
+  resolvedAt: integer("resolved_at"),
+  // The originating decision's seq — carried on the resolution feed event so the
+  // console can update the matching held row.
+  seq: integer("seq").notNull(),
 });

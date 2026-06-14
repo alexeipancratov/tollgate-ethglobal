@@ -1,33 +1,41 @@
 import { describe, it, expect } from "vitest";
-import { passThroughPolicy } from "./index";
+import { evaluatePolicy } from "./index";
 import type { Action } from "../../../shared/types";
 
-const action: Action = {
+const base: Action = {
   id: "a1",
   description: "call premium API",
   amount: 0.04,
   counterparty: null,
   createdAt: 1,
 };
+const state = { perActionThreshold: 5 };
 
-describe("passThroughPolicy", () => {
-  it("returns proceed via the pass-through policy", () => {
-    expect(passThroughPolicy(action, {})).toEqual({
+describe("evaluatePolicy (per-action-cap)", () => {
+  it("proceeds for an amount below the threshold", () => {
+    expect(evaluatePolicy({ ...base, amount: 0.04 }, state)).toEqual({
       outcome: "proceed",
-      policy: "pass-through",
+      policy: "per-action-cap",
     });
   });
 
-  it("approves a large action too (no caps in this slice)", () => {
-    expect(passThroughPolicy({ ...action, amount: 9999 }, {}).outcome).toBe("proceed");
+  it("proceeds for an amount exactly at the threshold (only strictly-greater escalates)", () => {
+    expect(evaluatePolicy({ ...base, amount: 5 }, state).outcome).toBe("proceed");
+  });
+
+  it("escalates for an amount above the threshold", () => {
+    expect(evaluatePolicy({ ...base, amount: 12.5 }, state)).toEqual({
+      outcome: "escalate",
+      policy: "per-action-cap",
+    });
   });
 
   it("is pure: same input -> same output, and does not mutate inputs", () => {
-    const a: Action = { ...action };
-    const snapshot = { ...action };
-    const r1 = passThroughPolicy(a, {});
-    const r2 = passThroughPolicy(a, {});
+    const a: Action = { ...base, amount: 20 };
+    const snapshot = { ...a };
+    const r1 = evaluatePolicy(a, state);
+    const r2 = evaluatePolicy(a, state);
     expect(r1).toEqual(r2);
-    expect(a).toEqual(snapshot); // input untouched
+    expect(a).toEqual(snapshot);
   });
 });

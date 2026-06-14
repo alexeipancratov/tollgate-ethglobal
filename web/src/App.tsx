@@ -1,34 +1,50 @@
-import { useEffect, useRef, useState } from "react";
-import type { FeedEvent } from "../../shared/types";
+import { useEffect, useState } from "react";
 import { connectFeed } from "./lib/ws";
-import { Feed } from "./feed/Feed";
-
-const MAX_RENDERED = 500;
+import { Feed, type FeedRow } from "./feed/Feed";
 
 export default function App() {
-  const [events, setEvents] = useState<FeedEvent[]>([]);
-  const seen = useRef<Set<number>>(new Set());
+  // Rows keyed by action id; resolutions update the matching held row in place.
+  const [rows, setRows] = useState<Record<string, FeedRow>>({});
 
-  useEffect(() => {
-    return connectFeed((incoming, replace) => {
-      setEvents((prev) => {
-        if (replace) {
-          seen.current = new Set(incoming.map((e) => e.seq));
-          return [...incoming];
-        }
-        const fresh = incoming.filter((e) => !seen.current.has(e.seq));
-        if (fresh.length === 0) return prev;
-        fresh.forEach((e) => seen.current.add(e.seq));
-        const merged = [...prev, ...fresh].sort((a, b) => a.seq - b.seq);
-        return merged.slice(-MAX_RENDERED);
-      });
+  useEffect(
+    () =>
+      connectFeed((events) => {
+        setRows((prev) => {
+          const next = { ...prev };
+          for (const e of events) {
+            if (e.type === "decision") {
+              next[e.action.id] = {
+                action: e.action,
+                seq: e.seq,
+                status: e.decision.outcome === "escalate" ? "held" : "auto-approved",
+                approvalId: e.approvalId,
+              };
+            } else {
+              const row = next[e.actionId];
+              if (row) next[e.actionId] = { ...row, status: e.outcome };
+            }
+          }
+          return next;
+        });
+      }),
+    [],
+  );
+
+  async function onResolve(approvalId: string, outcome: "approve" | "reject") {
+    await fetch(`/approvals/${approvalId}/resolve`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ outcome }),
     });
-  }, []);
+  }
+
+  const list = Object.values(rows).sort((a, b) => b.seq - a.seq);
+  const held = list.filter((r) => r.status === "held").length;
 
   return (
     <main
       style={{
-        maxWidth: 880,
+        maxWidth: 920,
         margin: "0 auto",
         padding: 24,
         color: "#e6edf3",
@@ -39,9 +55,9 @@ export default function App() {
     >
       <h1 style={{ fontSize: 20, margin: "0 0 4px" }}>Tollgate — live feed</h1>
       <p style={{ color: "#8b949e", margin: "0 0 16px", fontSize: 13 }}>
-        {events.length} actions · all auto-approved (pass-through policy)
+        {list.length} actions · {held} awaiting approval (per-action-cap policy)
       </p>
-      <Feed events={[...events].reverse()} />
+      <Feed rows={list} onResolve={onResolve} />
     </main>
   );
 }

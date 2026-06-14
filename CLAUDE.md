@@ -1,8 +1,9 @@
 <!-- SPECKIT START -->
-Active feature: **Walking-Skeleton Scaffold** (`specs/001-scaffold-walking-skeleton/`).
+Active feature: **Escalation, Hold & Human Approval** (`specs/002-escalation-hold-approval/`).
 For technologies, project structure, and the implementation approach, read the
-current plan: `specs/001-scaffold-walking-skeleton/plan.md` (with `research.md`,
-`data-model.md`, `contracts/`, and `quickstart.md` alongside it).
+current plan: `specs/002-escalation-hold-approval/plan.md` (with `research.md`,
+`data-model.md`, `contracts/`, and `quickstart.md` alongside it). Built on the
+completed `001-scaffold-walking-skeleton`.
 <!-- SPECKIT END -->
 
 # Project Context: Tollgate
